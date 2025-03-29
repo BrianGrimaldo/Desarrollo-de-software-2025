@@ -1,0 +1,29 @@
+name: flutter_application_1
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/organic_farming.jpg
+    - assets/icons/home_icon.png
+    - assets/icons/leaf_icon.png
+    - assets/icons/notification_icon.png
+    - assets/icons/group_icon.png
+
+  # Agrega aquí la ruta de tus assets, en este caso las imágenes.
