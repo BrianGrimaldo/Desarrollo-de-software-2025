@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "999185178403",
+    "project_id": "agrobin-e9a31",
+    "storage_bucket": "agrobin-e9a31.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:999185178403:android:47f09ffdab506479dfb696",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcIuAy2Cxbra5YlqYZiQUtErMwTvnCYME"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
