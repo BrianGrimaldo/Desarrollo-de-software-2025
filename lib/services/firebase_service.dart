@@ -13,11 +13,10 @@ class FirebaseService {
         email: email,
         password: password,
       );
-      
+
       // Esperar a que se actualice el usuario actual
       await Future.delayed(Duration(milliseconds: 500));
-      
-      // Obtener el ID del usuario actual
+
       final user = _auth.currentUser;
       if (user != null) {
         print('Usuario creado en Auth con ID: ${user.uid}');
@@ -36,17 +35,17 @@ class FirebaseService {
   Future<bool> saveUserData(String uid, Map<String, dynamic> userData) async {
     try {
       print('Guardando datos en Firestore para usuario $uid');
-      
+
       // Asegurar que el ID esté en los datos
       userData['id_usuario'] = uid;
-      
+
       // Guardar en Firestore
       await _firestore.collection('Usuario').doc(uid).set(userData);
-      
+
       // Verificar que se guardó
       print('Verificando que los datos se guardaron...');
       final doc = await _firestore.collection('Usuario').doc(uid).get();
-      
+
       if (doc.exists) {
         print('Datos guardados exitosamente: ${doc.data()}');
         return true;
@@ -69,15 +68,15 @@ class FirebaseService {
     try {
       // Paso 1: Crear usuario en Auth
       final uid = await createUserAuth(email, password);
-      
+
       if (uid == null) {
         print('No se pudo crear el usuario en Auth');
         return false;
       }
-      
+
       // Paso 2: Guardar datos en Firestore
       final success = await saveUserData(uid, userData);
-      
+
       return success;
     } catch (e) {
       print('Error en proceso de registro: $e');

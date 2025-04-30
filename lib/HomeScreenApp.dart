@@ -1,31 +1,23 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/CultivosScreen.dart';
 import 'package:flutter_application_1/ManageNotificationsScreen.dart';
 import 'package:flutter_application_1/IAChatScreen.dart'; // <--- Importa tu pantalla de IA
-
-void main() {
-  runApp(HomeScreenApp());
-}
+import 'package:firebase_core/firebase_core.dart';
+ // Asegúrate de importar CultivosScreen
 
 class HomeScreenApp extends StatelessWidget {
-  const HomeScreenApp({super.key});
+  final String uid; // Recibimos el UID del usuario
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(primaryColor: Colors.green, textTheme: TextTheme()),
-      home: HomeScreen(),
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  // Constructor para recibir el UID del usuario
+  const HomeScreenApp({super.key, required this.uid});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Bienvenido, $uid'),
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,6 +91,8 @@ class HomeScreen extends StatelessWidget {
                     imagePath: 'assets/organic_farming_2.jpg',
                   ),
                   SizedBox(height: 30),
+                  // Aquí agregamos la consulta a los cultivos del usuario logueado
+                  _buildUserCultivosSection(uid),
                 ],
               ),
             ),
@@ -117,7 +111,7 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HomeScreenApp()),
+                  MaterialPageRoute(builder: (context) => HomeScreenApp(uid: uid)),
                 );
               },
               child: Icon(Icons.home, color: Colors.green),
@@ -129,7 +123,7 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => CultivosScreen()),
+                  MaterialPageRoute(builder: (context) => CultivosScreen(uid: uid)), // Pasamos el uid
                 );
               },
               child: Icon(Icons.access_time, color: Colors.green),
@@ -214,6 +208,45 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  // Método para construir la sección de cultivos del usuario
+  Widget _buildUserCultivosSection(String uid) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('Cultivo')
+          .where('fkid_usuario', isEqualTo: uid) // Filtramos los cultivos por el UID del usuario
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text('Error al cargar los cultivos'));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Center(child: Text('No tienes cultivos registrados.'));
+        }
+
+        var cultivos = snapshot.data!.docs;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: List.generate(
+            cultivos.length,
+            (index) {
+              var cultivo = cultivos[index];
+              return ListTile(
+                title: Text(cultivo['nombre']),
+                subtitle: Text(cultivo['descripcion']),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'DetalleCultivoScreen.dart'; // Importa el detalle
+import 'RegisterCultivoScreen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'LogginScreen.dart';
 
-void main() {
-  runApp(
-    MaterialApp(debugShowCheckedModeBanner: false, home: CultivosScreen()),
-  );
+class CultivosScreen extends StatefulWidget {
+  final String uid; // Recibimos el UID del usuario
+
+  // Constructor para recibir el UID del usuario
+  const CultivosScreen({super.key, required this.uid});
+
+  @override
+  _CultivosScreenState createState() => _CultivosScreenState();
 }
 
-class CultivosScreen extends StatelessWidget {
-  const CultivosScreen({super.key});
+class _CultivosScreenState extends State<CultivosScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -18,54 +25,56 @@ class CultivosScreen extends StatelessWidget {
         backgroundColor: Colors.green,
         actions: [
           IconButton(icon: Icon(Icons.search), onPressed: () {}),
-          IconButton(icon: Icon(Icons.add), onPressed: () {}),
+          IconButton(icon: Icon(Icons.add), onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RegisterCultivoScreen(uid: widget.uid),  // Pasamos el uid
+              ),
+            );
+          }),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Buscar cultivo...',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('Cultivo')
+              .where('fkid_usuario', isEqualTo: widget.uid) // Filtramos por el UID del usuario
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('Error al cargar los cultivos'));
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(child: Text('No hay cultivos registrados.'));
+            }
+
+            var cultivos = snapshot.data!.docs;
+
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: List.generate(
+                  cultivos.length,
+                  (index) {
+                    var cultivo = cultivos[index];
+                    return CultivoCard(
+                      cultivoName: cultivo['nombre'],
+                      alertStatus: cultivo['alertStatus'] ?? '',
+                      daysTranscurridos: cultivo['daysTranscurridos'] ?? 0,
+                      statusColor: Colors.green, // Puedes hacer esto dinámico según el estado
+                    );
+                  },
                 ),
               ),
-              SizedBox(height: 1),
-              CultivoCard(
-                cultivoName: 'Maíz',
-                alertStatus: 'SIN ALERTAS',
-                daysTranscurridos: 48,
-                statusColor: Colors.green,
-              ),
-              CultivoCard(
-                cultivoName: 'Naranja',
-                alertStatus: 'NORMAL',
-                daysTranscurridos: 48,
-                statusColor: Colors.orange,
-              ),
-              CultivoCard(
-                cultivoName: 'Cultivo 1',
-                alertStatus: '',
-                daysTranscurridos: 48,
-                statusColor: Colors.transparent,
-              ),
-              CultivoCard(
-                cultivoName: 'Cultivo 2',
-                alertStatus: '',
-                daysTranscurridos: 48,
-                statusColor: Colors.transparent,
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
